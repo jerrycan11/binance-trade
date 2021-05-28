@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CryptoTradings;
+use App\Models\RecordsCoins;
 use App\Models\RecordsCrypto;
 use Binance\API;
 use Binance\RateLimiter;
@@ -15,14 +16,14 @@ class HomeController extends Controller
 
     public function __construct()
     {
-        $this->api = new API(env('B_KEY'), env('B_SECRET'));
-        $this->api = new RateLimiter($this->api);
     }
 
     public function getCoinBalance(Request $request)
     {
         $coin = $request->coin;
-        $balances = $this->api->balances();
+        $api = new API(env('B_KEY'), env('B_SECRET'));
+        $api = new RateLimiter($api);
+        $balances = $api->balances();
         return response($balances[$coin]['available']);
     }
 
@@ -36,9 +37,57 @@ class HomeController extends Controller
         return response(CryptoTradings::select('ticker', 'amount', 'price', 'buy_sell')->orderBy('id', 'DESC')->take(25)->get());
     }
 
+    public function addCoin(Request $request)
+    {
+        $rs = RecordsCoins::where('coin', $request->c)->first();
+        if ($rs == null) {
+            $rc = new RecordsCoins();
+            $rc->coin = $request->c;
+            $rc->save();
+            return response([
+                'status' => true,
+                'msg' => 'Coin added!'
+            ]);
+        } else {
+            return response([
+                'status' => false,
+                'msg' => 'Coin already present!'
+            ]);
+        }
+    }
+
+    public function removeCoin(Request $request)
+    {
+        $rs = RecordsCoins::where('coin', $request->c)->first();
+        if ($rs != null) {
+            RecordsCoins::where('coin', $request->c)->delete();
+            return response([
+                'status' => true,
+                'msg' => 'Coin removed!'
+            ]);
+        } else {
+            return response([
+                'status' => false,
+                'msg' => 'Coin not present!'
+            ]);
+        }
+    }
+
+    public function getCoins()
+    {
+        $coins = RecordsCoins::select('coin')->get();
+        $arr_coins = [];
+        foreach ($coins as $coin) {
+            array_push($arr_coins, $coin->coin);
+        }
+        return response($arr_coins);
+    }
+
     public function placeMarketBuyOrder(Request $request)
     {
-        $order = $this->api->marketBuy($request->c, $request->q);
+        $api = new API(env('B_KEY'), env('B_SECRET'));
+        $api = new RateLimiter($api);
+        $order = $api->marketBuy($request->c, $request->q);
         $this->saveOrder($order);
         $this->saveBuyDetail($order);
         return response([
@@ -50,7 +99,9 @@ class HomeController extends Controller
 
     public function placeMarketSellOrder(Request $request)
     {
-        $order = $this->api->marketSell($request->c, $request->q);
+        $api = new API(env('B_KEY'), env('B_SECRET'));
+        $api = new RateLimiter($api);
+        $order = $api->marketSell($request->c, $request->q);
         $this->saveOrder($order);
         RecordsCrypto::where('name', $request->c)->delete();
         return response([

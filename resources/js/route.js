@@ -2,11 +2,16 @@ import {createWebHistory, createRouter} from "vue-router";
 
 
 const HomeComponent = () => import('./components/HomeComponent.vue');
+const CryptoHome = () => import('./components/CryptoHome.vue');
 let routes = [
     {
         path: '/crypto/',
         name: 'crypto',
         component: HomeComponent
+    }, {
+        path: '/crypto/home',
+        name: 'home',
+        component: CryptoHome
     }
 ];
 

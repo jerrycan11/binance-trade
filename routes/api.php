@@ -19,3 +19,6 @@ Route::post('/getTradeRecords', [HomeController::class, 'getTradeRecords']);
 Route::post('/getCoinBalance', [HomeController::class, 'getCoinBalance']);
 Route::post('/placeMarketBuyOrder', [HomeController::class, 'placeMarketBuyOrder']);
 Route::post('/placeMarketSellOrder', [HomeController::class, 'placeMarketSellOrder']);
+Route::post('/getCoins', [HomeController::class, 'getCoins']);
+Route::post('/removeCoin', [HomeController::class, 'removeCoin']);
+Route::post('/addCoin', [HomeController::class, 'addCoin']);

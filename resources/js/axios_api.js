@@ -19,6 +19,25 @@ const axios_api = {
         let url = link + '/api/getBuyRecords';
         return this.getConnection().post(url, data);
     },
+    getCoins: function () {
+        let data = {};
+        let url = link + '/api/getCoins';
+        return this.getConnection().post(url, data);
+    },
+    addCoin: function (c) {
+        let data = {
+            c: c
+        };
+        let url = link + '/api/addCoin';
+        return this.getConnection().post(url, data);
+    },
+    removeCoin: function (c) {
+        let data = {
+            c: c
+        };
+        let url = link + '/api/removeCoin';
+        return this.getConnection().post(url, data);
+    },
     placeMarketBuyOrder: function (c, q) {
         let data = {
             c: c,
