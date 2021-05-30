@@ -245,6 +245,7 @@ export default {
                                 that.sellMark = true;
                             }
                         }).catch((err) => {
+
                             that.sellMark = true;
                             console.log(err);
                         })
