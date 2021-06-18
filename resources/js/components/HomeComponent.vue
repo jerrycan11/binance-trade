@@ -229,7 +229,7 @@ export default {
 
             if (this.arr_market_direction['dir'] === "UP") {
                 _.forEach(this.arr_coins, function (coin) {
-                    if (arr.includes(coin)  && that.arr_prices[coin].price < that.arr_prices[coin].buy && that.usdtBalance > that.spend_per_order && checkBuy[coin]) {
+                    if ( that.arr_prices[coin].price < that.arr_prices[coin].buy && that.usdtBalance > that.spend_per_order && checkBuy[coin]) {
                         let amount = Math.round(that.spend_per_order / that.arr_prices[coin].price);
                         if (that.arr_prices[coin].price > that.spend_per_order) {
                             amount = Math.round(that.spend_per_order / that.arr_prices[coin].price * 100) / 100;
