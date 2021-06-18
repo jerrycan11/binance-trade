@@ -7,18 +7,18 @@
                         Diff Records
                     </template>
                     <el-table :data="arr_buy_position" size="mini">
-                        <el-table-column prop="n" label="Name" width="100px"></el-table-column>
-                        <el-table-column label="Diff">
+                        <el-table-column prop="n" label="Name" width="92px"></el-table-column>
+                        <el-table-column label="Diff" width="75px">
                             <template #default="scope">
-                                <el-tag v-if="scope.row.d<0" type="danger" size="mini">
+                                <el-tag v-if="scope.row.d<0" type="danger" size="mini" style="width: 65px">
                                     {{ scope.row.d }}
                                 </el-tag>
-                                <el-tag v-else type="success" size="mini">
+                                <el-tag v-else type="success" size="mini" style="width: 65px">
                                     {{ scope.row.d }}
                                 </el-tag>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="c" label="Current"></el-table-column>
+                        <el-table-column prop="c" label="Current" width="100px"></el-table-column>
                     </el-table>
                     <el-tag size="mini">
                         Diff Total: {{ Math.round(arr_current_diff * 1000) / 1000 }}
@@ -38,7 +38,7 @@
                     </el-table>
                 </el-card>
             </el-col>
-            <el-col :span="11">
+            <el-col :span="10">
                 <el-card size="mini">
                     <template #header>
                         Current Prices
@@ -59,6 +59,13 @@
                             </el-tag>
                             <el-tag type="danger" effect="dark" size="mini">
                                 {{ arr_market_direction['low'] }}
+                            </el-tag>
+                            <el-tag v-if="arr_market_direction['percent'] <0" type="danger" effect="dark"
+                                    size="mini">
+                                {{ arr_market_direction['percent'] }}
+                            </el-tag>
+                            <el-tag v-else type="success" effect="dark" size="mini">
+                                {{ arr_market_direction['percent'] }}
                             </el-tag>
                         </el-tag>
                         <el-button @click="stopCurrentData" size="mini" type="info">
@@ -93,33 +100,44 @@
                         </el-descriptions>
                     </template>
                     <el-table :data="arr_coins" size="mini" height="663px">
-                        <el-table-column label="Name" width="120px">
+                        <el-table-column label="Name" width="90px">
                             <template #default="scope">
                                 {{ scope.row }}
                             </template>
                         </el-table-column>
-                        <el-table-column label="Price" width="130px">
+                        <el-table-column label="Price" width="85px">
                             <template #default="scope">
                                 <el-tag v-if="arr_prices[scope.row].price<arr_prices[scope.row].buy" type="danger"
-                                        size="mini">
+                                        size="mini" style="width: 75px">
                                     {{ arr_prices[scope.row].price }}
                                 </el-tag>
-                                <el-tag v-else type="success" size="mini">
+                                <el-tag v-else type="success" size="mini" style="width: 75px">
                                     {{ arr_prices[scope.row].price }}
                                 </el-tag>
                             </template>
                         </el-table-column>
-                        <el-table-column label="Buy At" width="130px">
+                        <el-table-column label="Change" width="65px">
+                            <template #default="scope">
+                                <el-tag v-if="arr_prices[scope.row].percent<0" type="danger"
+                                        size="mini" style="width: 75px">
+                                    {{ arr_prices[scope.row].percent }}
+                                </el-tag>
+                                <el-tag v-else type="success" size="mini" style="width: 75px">
+                                    {{ arr_prices[scope.row].percent }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="Buy At" width="90px">
                             <template #default="scope">
                                 {{ arr_prices[scope.row].buy }}
                             </template>
                         </el-table-column>
-                        <el-table-column label="24High" width="130px">
+                        <el-table-column label="24High" width="90px">
                             <template #default="scope">
                                 {{ arr_prices[scope.row].high }}
                             </template>
                         </el-table-column>
-                        <el-table-column label="24Low" width="130px">
+                        <el-table-column label="24Low" width="90px">
                             <template #default="scope">
                                 {{ arr_prices[scope.row].low }}
                             </template>
@@ -127,14 +145,14 @@
                     </el-table>
                 </el-card>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="6.5">
                 <el-card>
                     <template #header>
                         Trade Records
                     </template>
-                    <el-table :data="arr_trade_records" size="mini" height="800px">
-                        <el-table-column prop="ticker" label="Name"></el-table-column>
-                        <el-table-column label="Type">
+                    <el-table :data="arr_trade_records" size="mini" height="800px" style="width: 340px">
+                        <el-table-column prop="ticker" label="Name" width="90px"></el-table-column>
+                        <el-table-column label="Type" width="50px">
                             <template #default="scope">
                                 <el-tag v-if="scope.row.buy_sell === 'SELL'" type="danger" effect="dark"
                                         size="mini">
@@ -145,8 +163,8 @@
                                 </el-tag>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="amount" label="Qty"></el-table-column>
-                        <el-table-column prop="price" label="Price"></el-table-column>
+                        <el-table-column prop="amount" label="Qty" width="105px"></el-table-column>
+                        <el-table-column prop="price" label="Price" width="100px"></el-table-column>
                     </el-table>
                 </el-card>
             </el-col>
@@ -175,6 +193,8 @@ export default {
             arr_current_positon: 0,
             input_coin: null,
             sellMark: true,
+            totalSell: 0,
+            totalBuy: 0,
             usdtBalance: 0,
             interval: setInterval(() => {
                 this.checkForSell()
@@ -185,28 +205,41 @@ export default {
     },
     methods: {
         checkForBuy() {
+            let tsYesterday = Math.round(new Date().getTime() / 1000) - (600);
             let that = this;
+            let arr = [
+                "BTTUSDT"
+            ];
             let checkBuy = [];
             _.forEach(this.arr_coins, function (coin) {
                 checkBuy[coin] = true;
                 _.forEach(that.arr_buy_records, function (item) {
-                    if (coin === item.name) {
+                    let buyDate = new Date(item.updated_at).getTime() / 1000
+
+                    let check = true;
+
+                    if (arr.includes(coin) && buyDate < tsYesterday && that.arr_prices[coin].price < item.price) {
+                        check = false;
+                    }
+                    if (coin === item.name && check) {
                         checkBuy[coin] = false;
                     }
                 });
             });
+
             if (this.arr_market_direction['dir'] === "UP") {
                 _.forEach(this.arr_coins, function (coin) {
-                    if (that.arr_prices[coin].price < that.arr_prices[coin].buy && that.usdtBalance > that.spend_per_order && checkBuy[coin]) {
+                    if (arr.includes(coin)  && that.arr_prices[coin].price < that.arr_prices[coin].buy && that.usdtBalance > that.spend_per_order && checkBuy[coin]) {
                         let amount = Math.round(that.spend_per_order / that.arr_prices[coin].price);
-                        if (that.arr_prices[coin].price > 1) {
-                            amount = Math.round(that.spend_per_order / that.arr_prices[coin].price * 1000) / 1000;
+                        if (that.arr_prices[coin].price > that.spend_per_order) {
+                            amount = Math.round(that.spend_per_order / that.arr_prices[coin].price * 100) / 100;
                         }
                         that.usdtBalance = 0;
                         axios_api.placeMarketBuyOrder(that.arr_prices[coin].name, amount).then((response) => {
                             if (response.data.status) {
-                                that.$message(response.data.msg);
                                 that.refreshData();
+                                this.$message(response.data.msg);
+
                             }
                         }).catch((err) => {
                             console.log(err);
@@ -240,9 +273,10 @@ export default {
                         console.log(sellPrice, that.arr_current_price[item.name]);
                         axios_api.placeMarketSellOrder(item.name, item.qty).then((response) => {
                             if (response.data.status) {
-                                that.$message(response.data.msg);
                                 that.refreshData();
                                 that.sellMark = true;
+                                that.$message(response.data.msg);
+
                             }
                         }).catch((err) => {
 
@@ -284,7 +318,9 @@ export default {
         },
         getTradeRecords() {
             axios_api.getTradeRecords().then((response) => {
-                this.arr_trade_records = response.data;
+                this.arr_trade_records = response.data.data;
+                this.totalBuy = response.data.buy;
+                this.totalSell = response.data.sell;
             }).catch((err) => {
                 console.log(err);
             });
@@ -299,17 +335,20 @@ export default {
         getCurrentPrices(ticker) {
             let that = this;
             let count = 1;
+
             _.forEach(ticker, function (item) {
                 if (item.symbol === 'BTCUSDT') {
-                    let buyPrice = Math.round((parseInt(item.low * 100000000) / 100000000 + parseInt((item.high - item.low) * (that.buy_low_at) / 100 * 100000000) / 100000000) * 100000000) / 100000000;
+                    let buyPrice = Math.round((parseInt(item.low * 100000000) / 100000000 + parseInt((item.high - item.low) * (that.buy_low_at + 2) / 100 * 100000000) / 100000000) * 100000000) / 100000000;
                     that.arr_market_direction['price'] = Math.round(item.curDayClose);
                     that.arr_market_direction['low'] = Math.round(item.low);
                     that.arr_market_direction['high'] = Math.round(item.high);
+                    that.arr_market_direction['percent'] = Math.round(item.priceChangePercent);
                     if (buyPrice > item.curDayClose) {
                         that.arr_market_direction['dir'] = "DOWN";
                     } else {
                         that.arr_market_direction['dir'] = "UP";
                     }
+                    // that.print(item);
                 }
                 if (that.arr_coins.includes(item.symbol)) {
                     let buyPrice = Math.round((parseInt(item.low * 100000000) / 100000000 + parseInt((item.high - item.low) * that.buy_low_at / 100 * 100000000) / 100000000) * 100000000) / 100000000;
@@ -318,6 +357,7 @@ export default {
                         'id': count,
                         'name': item.symbol,
                         'price': item.curDayClose,
+                        'percent': item.priceChangePercent,
                         'high': item.high,
                         'buy': buyPrice,
                         'low': item.low
@@ -374,7 +414,7 @@ export default {
             }
         },
         print(ticker) {
-            console.log(ticker.curDayClose);
+            console.log(ticker);
         }
     },
     mounted() {

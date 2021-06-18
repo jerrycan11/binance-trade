@@ -29,12 +29,28 @@ class HomeController extends Controller
 
     public function getBuyRecords()
     {
-        return response(RecordsCrypto::select('name', 'price', 'qty')->get());
+        return response(RecordsCrypto::select('name', 'price', 'qty', 'updated_at')->get());
     }
 
     public function getTradeRecords()
     {
-        return response(CryptoTradings::select('ticker', 'amount', 'price', 'buy_sell')->orderBy('id', 'DESC')->take(25)->get());
+        $rs = CryptoTradings::select('ticker', 'amount', 'price', 'buy_sell')->orderBy('id', 'DESC')->take(25)->get();
+        $totalBuy = 0;
+        $totalSell = 0;
+        foreach ($rs as $record) {
+            if ($record->buy_sell == "SELL") {
+                $totalSell = $totalSell + $record->price;
+            }
+            if ($record->buy_sell == "BUY") {
+                $totalBuy = $totalBuy + $record->price;
+            }
+
+        }
+        return response([
+            'data' => $rs,
+            'buy' => $totalBuy,
+            'sell' => $totalSell
+        ]);
     }
 
     public function addCoin(Request $request)
@@ -113,11 +129,25 @@ class HomeController extends Controller
 
     private function saveBuyDetail($order)
     {
-        $rc = new RecordsCrypto();
-        $rc->name = $order['symbol'];
-        $rc->price = $order['cummulativeQuoteQty'] / $order['executedQty'];
-        $rc->qty = $order['executedQty'];
-        $rc->save();
+        $rs = RecordsCrypto::where('name', $order['symbol'])->first();
+        if ($rs == null) {
+            $rc = new RecordsCrypto();
+            $rc->name = $order['symbol'];
+            $rc->price = $order['cummulativeQuoteQty'] / $order['executedQty'];
+            $rc->qty = $order['executedQty'];
+            $rc->save();
+        } else {
+            $newPrice = $order['cummulativeQuoteQty'] / $order['executedQty'];
+            $newQty = $order['executedQty'];
+            $oldPrice = $rs->price;
+            $oldQty = $rs->qty;
+            $totalQty = $oldQty + $newQty;
+            $totalPrice = ($oldPrice * $oldQty / $totalQty) + ($newPrice * $newQty / $totalQty);
+            RecordsCrypto::where('name', $order['symbol'])->update([
+                'price' => $totalPrice,
+                'qty' => $totalQty
+            ]);
+        }
     }
 
     private function saveOrder($order)
